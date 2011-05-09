@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Node Aggregator feature.
+ */
+
+include_once('n.features.inc');

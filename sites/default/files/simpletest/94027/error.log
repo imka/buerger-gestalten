@@ -1,0 +1,19 @@
+[09-May-2011 08:11:56] PHP Fatal error:  Maximum execution time of 60 seconds exceeded in D:\xampp\htdocs\drupal7\includes\database\database.inc on line 1028
+[09-May-2011 08:11:56] PHP Stack trace:
+[09-May-2011 08:11:56] PHP   1. {main}() D:\xampp\htdocs\drupal7\index.php:0
+[09-May-2011 08:11:56] PHP   2. menu_execute_active_handler() D:\xampp\htdocs\drupal7\index.php:22
+[09-May-2011 08:11:56] PHP   3. call_user_func_array() D:\xampp\htdocs\drupal7\includes\menu.inc:501
+[09-May-2011 08:11:56] PHP   4. system_batch_page() D:\xampp\htdocs\drupal7\includes\menu.inc:501
+[09-May-2011 08:11:56] PHP   5. _batch_page() D:\xampp\htdocs\drupal7\modules\system\system.admin.inc:2282
+[09-May-2011 08:11:56] PHP   6. _batch_do() D:\xampp\htdocs\drupal7\includes\batch.inc:81
+[09-May-2011 08:11:56] PHP   7. _batch_process() D:\xampp\htdocs\drupal7\includes\batch.inc:162
+[09-May-2011 08:11:56] PHP   8. call_user_func_array() D:\xampp\htdocs\drupal7\includes\batch.inc:285
+[09-May-2011 08:11:56] PHP   9. _simpletest_batch_operation() D:\xampp\htdocs\drupal7\includes\batch.inc:285
+[09-May-2011 08:11:56] PHP  10. DrupalTestCase->run() D:\xampp\htdocs\drupal7\modules\simpletest\simpletest.module:178
+[09-May-2011 08:11:56] PHP  11. AutotagTestCase->setUp() D:\xampp\htdocs\drupal7\modules\simpletest\drupal_web_test_case.php:477
+[09-May-2011 08:11:56] PHP  12. DrupalWebTestCase->setUp() D:\xampp\htdocs\drupal7\sites\all\modules\autotag\autotag.test:84
+[09-May-2011 08:11:56] PHP  13. module_enable() D:\xampp\htdocs\drupal7\modules\simpletest\drupal_web_test_case.php:1308
+[09-May-2011 08:11:56] PHP  14. registry_update() D:\xampp\htdocs\drupal7\includes\module.inc:423
+[09-May-2011 08:11:56] PHP  15. _registry_update() D:\xampp\htdocs\drupal7\includes\bootstrap.inc:2846
+[09-May-2011 08:11:56] PHP  16. DatabaseTransaction->__destruct() D:\xampp\htdocs\drupal7\includes\database\database.inc:2846
+[09-May-2011 08:11:56] PHP  17. DatabaseConnection->popTransaction() D:\xampp\htdocs\drupal7\includes\database\database.inc:1774

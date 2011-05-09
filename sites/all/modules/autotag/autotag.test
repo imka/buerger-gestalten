@@ -1,0 +1,117 @@
+<?php
+
+//  $Id: autotag.test, v 1.0, 2011/04/19 19:52 Iman EXP $
+
+/**
+ * @file
+ * Tests for Autotag module.
+ */
+ 
+ 
+class AutotagSettingsTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Autotag Settings',
+      'description' => 'Set Autotag Options',
+      'group' => 'Autotag',
+    );
+  }
+  
+  public function setUp() {
+    parent::setUp('autotag', 'tagtag', 'tag_on_save'); 
+    $this->admin_user = $this->drupalCreateUser(array('administer content types'));
+    $this->drupalLogin($this->admin_user);
+
+	//variable_set('search_fields_default', 'Body');
+	variable_set('tagtag_search_fields_article', 'Body');
+	variable_set('tagtag_search_article', 'Taxonomy term searcher');
+	variable_set('tagtag_field_article', 'Tags');
+	variable_set('tagtag_ui_article', 1);
+	variable_set('tagtag_field_article', 'Tags');
+	variable_set('tagtag_replace_article', 0);
+	
+	
+  }
+  
+  /**
+ * Set Autotag options
+ */
+  function testAutotagSettings() {
+	//$this->drupalGet('admin/structure/types/manage/article');
+	//$edit = array(
+	//	'tagtag_search[autotag]' => TRUE,
+	//);
+	//$edit["node_options[status]"] = FALSE;
+	//$this->_help = t('khodaaaaaaaaaa!');
+	
+	//$settings = array(
+	//	'tagtag_search[autotag]',
+      //'revision',
+      //'revision_moderation',
+    //);
+    //variable_set('tagtag_search[autotag]', TRUE);
+	
+	//$this->drupalSetSettings($settings);
+	//$this->drupalPost(NULL, $edit, t('Save Content type'));
+	//$this->drupalPost('admin/structure/types/manage/article', $settings, t('Save Content type'));
+	
+	//$settings = array(
+	//	'type' => t('testnode'),
+		//'title' => $this->randomName(),
+	//	'tagtag_search[autotag]' => TRUE,
+	//);
+	
+	//$this->drupalCreateContentType($settings);
+  }
+}
+ 
+class AutotagTestCase extends DrupalWebTestCase {
+  //protected $privileged_user;
+  
+  public static function getInfo() {
+    return array(
+      'name' => 'Test Autotag',
+      'description' => 'Test autotag functions of Tags API',
+      'group' => 'Autotag',
+    );
+  }
+
+  public function setUp() {
+    //parent::setUp('autotag'); 
+    //$this->privileged_user = $this->drupalCreateUser(array('create article content'));
+    //$this->drupalLogin($this->privileged_user);
+	parent::setUp('autotag', 'tagtag', 'tag_on_save'); 
+    $this->admin_user = $this->drupalCreateUser(array('administer content types', 'create article content'));
+    $this->drupalLogin($this->admin_user);
+
+	variable_set('tagtag_search_fields[body]_article', 'body');
+	variable_set('tagtag_search[autotag]_article', 'autotag');
+	variable_set('tagtag_ui_article', t('tag_on_save'));
+	variable_set('tagtag_field_article', t('field_tags'));
+	variable_set('tagtag_replace_article', 0);
+	
+	variable_set('autotag_vids_article', 1);
+
+  }
+  
+  /**
+ * Test if returned tags are members of vocabulary
+ */
+  function testReturnedTags() {
+	$this->drupalGet('node/add/article');
+	$edit = array();
+	$edit['title'] = $this->randomName();
+    $edit["body[und][0][value]"] = t('this is a Unit test and has nothing to do with politics');
+	//$edit["field_tags[und]"] = t('dadad');
+    $this->drupalPost(NULL, $edit, t('Save'));
+	$this->assertRaw(t('Article %title has been created.', array('%title' => $edit['title'])), t('Article created successfully'));
+	$node = $this->drupalGetNodeByTitle($edit['title']);	
+	//$this->drupalGet('node/' . $node->nid);
+	//$this->assertFieldByName('field_tags[und]', 'dadad', "This is Correctly Set!");
+	$this->drupalGet('admin/structure/types/manage/article');
+  }
+}
+
+
+

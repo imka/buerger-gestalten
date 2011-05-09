@@ -1,0 +1,207 @@
+<?php
+
+/**
+ * hook_form_alter
+ */
+function autotag_form_alter(&$form, &$form_state, $form_id){
+  if($form['#id'] == 'node-form' && isset($form['taxonomy']) && count(_autotag_get_vids_for_type($form['type']['#value']))){
+    // Always make the taxonomy section a fieldset, as it groups the button with
+    // the autocomplete section.
+    $form['taxonomy'] += array(
+      '#type' => 'fieldset',
+      '#title' => t('Vocabularies'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#prefix' => '<div id="taxonomy-fieldset">',
+      '#suffix' => '</div>'
+    );
+    // Weight to the bottom
+    $form['taxonomy']['autotag'] = array(
+      '#prefix' => '<div id="taxonomy-autotag">',
+      '#suffix' => '</div>',
+      '#weight' => 1000
+    );
+    // Box for entering a message when autotag button is pressed
+    // Weight to the top.
+    $form['taxonomy']['autotag-message'] = array(
+      '#weight' => -1000,
+      '#value' => '<div id="autotag-message" class="messages status"></div>'
+    );
+    // The Autotag button
+    $form['taxonomy']['autotag']['taxonomyautotagbutton'] = array(
+      '#tree' => FALSE,
+      '#type' => 'button',
+      '#value' => t('Autotag'),
+      '#ahah' => array(
+        'path' => 'autotag/' . $form['type']['#value'] . '/' . $form['nid']['#value'],
+        'wrapper' => 'node-form',
+        'progress' => array(
+          'type' => 'bar',
+          'message' => t('Autotagging...')
+        )
+      )
+    );
+    // Get the default state for the checkbox
+    $checkboxes = variable_get('autotag_save_checkbox', array());
+    if($form_state['submitted'] && $form_state['clicked_button']['#submit'][0] == 'node_form_build_preview'){
+      $checkbox_default_value = $form_state['values']['taxonomyautotagcheckbox'];
+    } else {
+      $checkbox_default_value = isset($checkboxes[$form['type']['#value']]) ? $checkboxes[$form['type']['#value']] : 0;
+    }
+    $form['taxonomy']['autotag']['taxonomyautotagcheckbox'] = array(
+      '#tree' => FALSE,
+      '#type' => 'checkbox',
+      '#title' => t('Autotag on save'),
+      '#description' => t('If checked, after clicking "Save", the node will be associated with all relevant terms - you will not be given the option to review these.'),
+      '#default_value' => $checkbox_default_value 
+    );
+    // Add the CSS file to style the checkbox and button
+    drupal_add_css(drupal_get_path('module', 'autotag') . '/autotag.css');
+    // Add the JS that will do the work for the Autotag button.
+    drupal_add_js(drupal_get_path('module', 'autotag') . '/autotag.js');
+    // Additional autotag stuff needs executing.
+    drupal_add_js(array(
+      'ahah' => array(
+        'edit-taxonomyautotagbutton' => array(
+          'submitextra' => 'autotag_submitextra'
+        )
+      )
+    ), 'setting');
+  }
+}
+
+/**
+ * hook_nodeapi
+ */
+function autotag_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL){
+  //drupal_set_message($op . ': ' . db_result(db_query('SELECT COUNT(*) FROM term_node WHERE nid = 12')));
+  switch($op){
+    case 'presave':
+      // If the autotag checkbox is present and checked, we'll search the node
+      // for tags, and add them to the node before saving.
+      if(isset($node->taxonomyautotagcheckbox) && $node->taxonomyautotagcheckbox){
+        module_load_include('ahah.inc', 'autotag');
+        $tids = autotag_search_form_array($_POST, $node->type);
+        // Remove the tids that we don't want adding - we can only do this if we have
+        // an nid
+        if($node->nid){
+          $result = db_query('SELECT a.tid, vid FROM {autotag} a, {term_data} t WHERE nid = %d AND a.tid = t.tid', $node->nid);
+          while($row = db_fetch_array($result)){
+            $key = array_search($row, $tids);
+            if($key !== FALSE){
+              unset($tids[$key]);
+            }
+          }
+        }
+        foreach($tids as $tid){
+          if(is_array($node->taxonomy[$tid['vid']])){
+            $node->taxonomy[$tid['vid']][$tid['tid']] = $tid['tid'];
+          }else{
+            $node->taxonomy[$tid['vid']] = array(
+              $tid['tid'] => $tid['tid']
+            );
+          }
+        }
+      }
+      break;
+    case 'update':
+    case 'insert':
+      // Here we can add the relevant tids to the autotag table.
+      if(isset($_SESSION['autotag_tids'][$node->form_build_id])){
+        // Lets get the ones that were tagged to the node from the term_node table
+        $result = db_query('SELECT n.tid, t.vid FROM {term_node} n, {term_data} t WHERE n.tid = t.tid AND nid = %d', $node->nid);
+        while($row = db_fetch_array($result)){
+          $key = array_search($row, $_SESSION['autotag_tids'][$node->form_build_id]);
+          if($key !== FALSE){
+            unset($_SESSION['autotag_tids'][$node->form_build_id][$key]);
+          }
+        }
+        // Clear the current ignore tids
+        db_query('DELETE FROM {autotag} WHERE nid = %d', $node->nid);
+        if(count($_SESSION['autotag_tids'][$node->form_build_id])){
+          $tids_string = array();
+          foreach($_SESSION['autotag_tids'][$node->form_build_id] as $tid){
+            $tids_string[] = $node->nid . ', ' . $tid['tid'];
+          }
+          // Add the new ignore tids
+          db_query('INSERT INTO {autotag} (nid, tid) VALUES ('.implode('),(', $tids_string).')');
+        }
+      } else {
+        // We've probably saved without pressing the autotag button.  We need to
+        // check that the autotag checkbox is checked, and if so, delete the
+        // bits from the autotag table that may have been tagged..
+        if(isset($node->taxonomyautotagcheckbox) && $node->taxonomyautotagcheckbox){
+          db_query('DELETE FROM {autotag} WHERE tid IN (SELECT tid FROM {term_node} WHERE {autotag}.nid = nid AND {autotag}.tid = tid) AND nid IN (SELECT nid FROM {term_node} WHERE {autotag}.nid = nid AND {autotag}.tid = tid)');
+        }
+      }
+      break;        
+  }
+}
+
+/**
+ * Get the vids that are associated with a content type and that are set as
+ * multiple select, and not required.
+ */
+function _autotag_get_vids_for_type($type){
+  static $static_vids;
+  if(isset($static_vids[$type])){return $static_vids[$type];}
+  $vocabularies = taxonomy_get_vocabularies();
+  $vids = array();
+  foreach($vocabularies as $vocabulary){
+    if(in_array($type, $vocabulary->nodes) && $vocabulary->required == 0 && $vocabulary->multiple == 1){
+      $vids[] = $vocabulary->vid;
+    }
+  }
+  $static_vids[$type] = $vids;
+  return $vids;
+}
+
+/**
+ * hook_menu
+ */
+function autotag_menu(){
+  return array(
+    'autotag/%' => array(
+      'title' => 'Autotag callback',
+      'page callback' => 'autotag_callback',
+      'file' => 'autotag.ahah.inc',
+      'access arguments' => array(
+        1
+      ),
+      'access callback' => 'autotag_callback_access',
+      'page arguments' => array(
+        1
+      ),
+      'type' => MENU_CALLBACK
+    ),
+    'admin/settings/autotag' => array(
+      'title' => 'Autotag settings',
+      'description' => 'Change the default autotag settings.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array(
+        'autotag_admin_settings'
+      ),
+      'access arguments' => array(
+        'administer site configuration'
+      ),
+      'file' => 'autotag.settings.inc'
+    )
+  );
+}
+
+/**
+ * Access callback
+ */
+function autotag_callback_access($content_type, $nid = FALSE){
+  // If we've got a nid, then check this user can edit that node, else we assume
+  // that we're creating a new node, so check the user can create a node of this
+  // type
+  if($nid){
+    $node = node_load(array(
+      'nid' => $nid
+    ));
+    return node_access('update', $node);
+  }else{
+    return node_access('create', $content_type);
+  }
+}

@@ -1,0 +1,13 @@
+name = "Taxonomy Automatic Tagger (Autotag)"
+description = "Scans content for relevant tags, and applies them"
+package = "EDIT"
+dependencies[] = taxonomy
+dependencies[] = lowername
+dependencies[] = ahah_action
+core = 6.x
+; Information added by drupal.org packaging script on 2010-09-23
+version = "6.x-2.0"
+core = "6.x"
+project = "autotag"
+datestamp = "1285234858"
+

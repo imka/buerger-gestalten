@@ -1,0 +1,21 @@
+[09-May-2011 08:13:41] PHP Fatal error:  Maximum execution time of 60 seconds exceeded in D:\xampp\htdocs\drupal7\includes\common.inc on line 6922
+[09-May-2011 08:13:41] PHP Stack trace:
+[09-May-2011 08:13:41] PHP   1. {main}() D:\xampp\htdocs\drupal7\index.php:0
+[09-May-2011 08:13:41] PHP   2. menu_execute_active_handler() D:\xampp\htdocs\drupal7\index.php:22
+[09-May-2011 08:13:41] PHP   3. call_user_func_array() D:\xampp\htdocs\drupal7\includes\menu.inc:501
+[09-May-2011 08:13:41] PHP   4. system_batch_page() D:\xampp\htdocs\drupal7\includes\menu.inc:501
+[09-May-2011 08:13:41] PHP   5. _batch_page() D:\xampp\htdocs\drupal7\modules\system\system.admin.inc:2282
+[09-May-2011 08:13:41] PHP   6. _batch_do() D:\xampp\htdocs\drupal7\includes\batch.inc:81
+[09-May-2011 08:13:41] PHP   7. _batch_process() D:\xampp\htdocs\drupal7\includes\batch.inc:162
+[09-May-2011 08:13:41] PHP   8. call_user_func_array() D:\xampp\htdocs\drupal7\includes\batch.inc:285
+[09-May-2011 08:13:41] PHP   9. _simpletest_batch_operation() D:\xampp\htdocs\drupal7\includes\batch.inc:285
+[09-May-2011 08:13:41] PHP  10. DrupalTestCase->run() D:\xampp\htdocs\drupal7\modules\simpletest\simpletest.module:178
+[09-May-2011 08:13:41] PHP  11. AutotagTestCase->setUp() D:\xampp\htdocs\drupal7\modules\simpletest\drupal_web_test_case.php:477
+[09-May-2011 08:13:41] PHP  12. DrupalWebTestCase->setUp() D:\xampp\htdocs\drupal7\sites\all\modules\autotag\autotag.test:84
+[09-May-2011 08:13:41] PHP  13. DrupalWebTestCase->resetAll() D:\xampp\htdocs\drupal7\modules\simpletest\drupal_web_test_case.php:1331
+[09-May-2011 08:13:41] PHP  14. drupal_flush_all_caches() D:\xampp\htdocs\drupal7\modules\simpletest\drupal_web_test_case.php:1412
+[09-May-2011 08:13:41] PHP  15. registry_rebuild() D:\xampp\htdocs\drupal7\includes\common.inc:7029
+[09-May-2011 08:13:41] PHP  16. system_rebuild_module_data() D:\xampp\htdocs\drupal7\includes\bootstrap.inc:2831
+[09-May-2011 08:13:41] PHP  17. _system_rebuild_module_data() D:\xampp\htdocs\drupal7\modules\system\system.module:2410
+[09-May-2011 08:13:41] PHP  18. drupal_parse_info_file() D:\xampp\htdocs\drupal7\modules\system\system.module:2358
+[09-May-2011 08:13:41] PHP  19. drupal_parse_info_format() D:\xampp\htdocs\drupal7\includes\common.inc:6857
